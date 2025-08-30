@@ -1,8 +1,7 @@
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
+package com.example.springredisexample.config;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -11,30 +10,28 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-public class RedisConfig {
-  @Bean
-  public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    return mapper;
-  }
+@RequiredArgsConstructor
+public class RedisConfiguration {
+
+  private final ObjectMapper objectMapper;
 
   @Bean
-  public RedisTemplate<String, Object> redisTemplate(ObjectMapper mapper, RedisConnectionFactory connectionFactory) {
+  public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
     RedisTemplate<String, Object> template = new RedisTemplate<>();
     template.setConnectionFactory(connectionFactory);
 
-    // Key Serializer 설정
+    // Key는 String
     template.setKeySerializer(new StringRedisSerializer());
+    template.setHashKeySerializer(new StringRedisSerializer());
 
-    // Value Serializer 설정
-    Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(mapper, Object.class);
-
-    mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-
+    // Value는 JSON
+    Jackson2JsonRedisSerializer<Object> serializer =
+            new Jackson2JsonRedisSerializer<>(objectMapper, Object.class); // 생성자 주입
     template.setValueSerializer(serializer);
     template.setHashValueSerializer(serializer);
 
+    template.afterPropertiesSet();
+
     return template;
   }
+}

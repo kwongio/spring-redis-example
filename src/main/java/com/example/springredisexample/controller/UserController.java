@@ -1,5 +1,7 @@
-package com.example.springredisexample;
+package com.example.springredisexample.controller;
 
+import com.example.springredisexample.service.CacheService;
+import com.example.springredisexample.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
